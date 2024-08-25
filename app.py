@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # Cargar datos desde la ruta especificada
-df = pd.read_csv('D:\\Phyton\\Pruebas\\PEI-1\\Resultados.csv')
+df = pd.read_csv('Resultados.csv')
 
 # Configuración de la página
 st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
