@@ -1,54 +1,77 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from fpdf import FPDF
+import pdfkit
 from io import BytesIO
 
 # Función para generar el PDF
-def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
-    pdf = FPDF()
-    pdf.add_page()
+def generar_pdf_html(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
+    # Crear el contenido HTML del PDF
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            h1 {{ text-align: center; }}
+            table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
+            th, td {{ border: 1px solid black; padding: 8px; text-align: center; }}
+            th {{ background-color: #f2f2f2; }}
+            .title {{ text-align: center; font-size: 14px; margin-top: 20px; }}
+        </style>
+    </head>
+    <body>
+        <h1>Resultados de la Prueba Estatal de Inglés</h1>
+        <p><strong>Escuela:</strong> {escuela}</p>
+        <p><strong>Modalidad:</strong> {modalidad}</p>
 
-    # Título principal
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Resultados de la Prueba Estatal de Inglés", ln=True, align="C")
-    pdf.ln(10)
+        <div class="title">Tabla de Frecuencias: Gramática</div>
+        <table>
+            <tr>
+                <th>Nivel</th>
+                <th>Estudiantes</th>
+                <th>Porcentaje</th>
+            </tr>
+    """
     
-    # Información de la escuela
-    pdf.set_font("Arial", size=10)
-    pdf.cell(200, 10, txt=f"Escuela: {escuela}", ln=True)
-    pdf.cell(200, 10, txt=f"Modalidad: {modalidad}", ln=True)
-    pdf.ln(10)
-
-    # Añadir tablas de frecuencias con porcentaje
-    pdf.set_font("Arial", size=10)
-    
-    pdf.cell(100, 10, txt="Tabla de Frecuencias: Gramática", ln=True)
-    pdf.ln(5)
-    pdf.cell(80, 10, txt="Nivel", border=1)
-    pdf.cell(40, 10, txt="Estudiantes", border=1)
-    pdf.cell(40, 10, txt="Porcentaje", border=1)
-    pdf.ln()
     for i in range(len(tabla_gramatica)):
-        pdf.cell(80, 10, txt=f"{tabla_gramatica.iloc[i]['Nivel']}", border=1)
-        pdf.cell(40, 10, txt=f"{tabla_gramatica.iloc[i]['Estudiantes']}", border=1)
-        pdf.cell(40, 10, txt=f"{tabla_gramatica.iloc[i]['Porcentaje']:.2f}%", border=1)
-        pdf.ln()
-    pdf.ln(10)
+        html_content += f"""
+            <tr>
+                <td>{tabla_gramatica.iloc[i]['Nivel']}</td>
+                <td>{tabla_gramatica.iloc[i]['Estudiantes']}</td>
+                <td>{tabla_gramatica.iloc[i]['Porcentaje']:.2f}%</td>
+            </tr>
+        """
+    
+    html_content += """
+        </table>
 
-    pdf.cell(100, 10, txt="Tabla de Frecuencias: Vocabulario", ln=True)
-    pdf.ln(5)
-    pdf.cell(80, 10, txt="Nivel", border=1)
-    pdf.cell(40, 10, txt="Estudiantes", border=1)
-    pdf.cell(40, 10, txt="Porcentaje", border=1)
-    pdf.ln()
+        <div class="title">Tabla de Frecuencias: Vocabulario</div>
+        <table>
+            <tr>
+                <th>Nivel</th>
+                <th>Estudiantes</th>
+                <th>Porcentaje</th>
+            </tr>
+    """
+    
     for i in range(len(tabla_vocabulario)):
-        pdf.cell(80, 10, txt=f"{tabla_vocabulario.iloc[i]['Nivel']}", border=1)
-        pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Estudiantes']}", border=1)
-        pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
-        pdf.ln()
-
-    return pdf
+        html_content += f"""
+            <tr>
+                <td>{tabla_vocabulario.iloc[i]['Nivel']}</td>
+                <td>{tabla_vocabulario.iloc[i]['Estudiantes']}</td>
+                <td>{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%</td>
+            </tr>
+        """
+    
+    html_content += """
+        </table>
+    </body>
+    </html>
+    """
+    
+    # Generar PDF desde el HTML
+    pdf_output = pdfkit.from_string(html_content, False)
+    return pdf_output
 
 # Cargar datos desde la ruta especificada
 df = pd.read_csv('Resultados.csv')
@@ -151,10 +174,7 @@ if not df_filtered.empty:
 
     # Botón para generar el PDF
     if st.button("Generar reporte"):
-        pdf = generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario)
-        pdf_output = BytesIO()
-        pdf.output(pdf_output)
-        pdf_output.seek(0)
+        pdf_output = generar_pdf_html(escuela, modalidad, tabla_gramatica, tabla_vocabulario)
         st.download_button(label="Descargar PDF", data=pdf_output, file_name="reporte.pdf", mime="application/pdf")
 else:
     st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
