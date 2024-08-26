@@ -1,6 +1,5 @@
-pandas
-plotly
-streamlit
-matplotlib
-FPDF
-BytesIO
+pandas==2.2.2
+plotly==5.23.0
+streamlit==1.37.1
+matplotlib==3.9.2
+FPDF==1.7.2
