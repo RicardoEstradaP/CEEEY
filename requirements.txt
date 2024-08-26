@@ -3,3 +3,4 @@ plotly==5.23.0
 streamlit==1.37.1
 matplotlib==3.9.2
 FPDF==1.7.2
+kaleido==0.2.1
