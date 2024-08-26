@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from fpdf import FPDF
 from io import BytesIO
 
+import os
+os.system('pip install -U kaleido')
+
 # Función para convertir un gráfico Plotly a una imagen PNG
 def fig_to_img(fig):
     img_bytes = fig.to_image(format="png")
