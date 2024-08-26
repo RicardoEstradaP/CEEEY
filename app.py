@@ -1,9 +1,69 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib.pyplot as plt
+from fpdf import FPDF
+from io import BytesIO
+
+# Función para convertir un gráfico Plotly a una imagen PNG
+def fig_to_img(fig):
+    img_bytes = fig.to_image(format="png")
+    return img_bytes
+
+# Función para generar el PDF
+def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, img_gramatica, img_vocabulario):
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Título principal
+    pdf.set_font("Arial", size=14)
+    pdf.cell(200, 10, txt="Resultados de la Prueba Estatal de Inglés", ln=True, align="C")
+    pdf.ln(10)
+    
+    # Información de la escuela
+    pdf.set_font("Arial", size=10)
+    pdf.cell(200, 10, txt=f"Escuela: {escuela}", ln=True)
+    pdf.cell(200, 10, txt=f"Modalidad: {modalidad}", ln=True)
+    pdf.ln(10)
+
+    # Insertar imágenes de los gráficos
+    pdf.image(BytesIO(img_gramatica), x=10, y=pdf.get_y(), w=100)
+    pdf.image(BytesIO(img_vocabulario), x=110, y=pdf.get_y(), w=100)
+    pdf.ln(85)
+
+    # Añadir tablas de frecuencias
+    pdf.set_font("Arial", size=9)
+    pdf.cell(100, 10, txt="Tabla de Frecuencias: Gramática", ln=True)
+    pdf.ln(5)
+
+    # Tabla de Gramática con menor altura de celdas
+    cell_height = 6  # Altura reducida para las celdas
+    pdf.cell(60, cell_height, "Nivel", 1)
+    pdf.cell(60, cell_height, "Estudiantes", 1)
+    pdf.ln()
+    for i in range(len(tabla_gramatica)):
+        pdf.cell(60, cell_height, tabla_gramatica.iloc[i]['Nivel'], 1)
+        pdf.cell(60, cell_height, str(tabla_gramatica.iloc[i]['Estudiantes']), 1)
+        pdf.ln()
+
+    pdf.ln(10)
+
+    pdf.cell(100, 10, txt="Tabla de Frecuencias: Vocabulario", ln=True)
+    pdf.ln(5)
+
+    # Tabla de Vocabulario con menor altura de celdas
+    pdf.cell(60, cell_height, "Nivel", 1)
+    pdf.cell(60, cell_height, "Estudiantes", 1)
+    pdf.ln()
+    for i in range(len(tabla_vocabulario)):
+        pdf.cell(60, cell_height, tabla_vocabulario.iloc[i]['Nivel'], 1)
+        pdf.cell(60, cell_height, str(tabla_vocabulario.iloc[i]['Estudiantes']), 1)
+        pdf.ln()
+
+    return pdf
 
 # Cargar datos desde la ruta especificada
-df = pd.read_csv('Resultados.csv')
+df = pd.read_csv('D:\\Phyton\\Pruebas\\PEI-1\\Resultados.csv')
 
 # Configuración de la página
 st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
@@ -50,13 +110,13 @@ if not df_filtered.empty:
                            color_discrete_map=colores)
     fig_gramatica.update_layout(
         title={
-            'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes</span>",
-            'y':0.9,  # Ajustar la posición vertical del título
+            'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes",
+            'y':0.9,
             'x':0.5,
             'xanchor': 'center',
             'yanchor': 'top'
         },
-        margin=dict(t=120)  # Ajustar el margen superior para crear espacio entre el título y el gráfico
+        margin=dict(t=120)
     )
 
     # Gráfico de sectores para Vocabulario con colores y orden constante
@@ -66,13 +126,13 @@ if not df_filtered.empty:
                              color_discrete_map=colores)
     fig_vocabulario.update_layout(
         title={
-            'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes</span>",
-            'y':0.9,  # Ajustar la posición vertical del título
+            'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes",
+            'y':0.9,
             'x':0.5,
             'xanchor': 'center',
             'yanchor': 'top'
         },
-        margin=dict(t=120)  # Ajustar el margen superior para crear espacio entre el título y el gráfico
+        margin=dict(t=120)
     )
 
     # Crear dos columnas para los gráficos
@@ -89,12 +149,12 @@ if not df_filtered.empty:
     
     # Crear DataFrames para las tablas sin índice adicional
     tabla_gramatica = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).reset_index()
-    tabla_gramatica.columns = ['Nivel', 'Estudiantes']  # Cambiar los nombres de las columnas
-    tabla_gramatica = tabla_gramatica.reset_index(drop=True)  # Eliminar la columna de índice
+    tabla_gramatica.columns = ['Nivel', 'Estudiantes']
+    tabla_gramatica = tabla_gramatica.reset_index(drop=True)
 
     tabla_vocabulario = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).reset_index()
-    tabla_vocabulario.columns = ['Nivel', 'Estudiantes']  # Cambiar los nombres de las columnas
-    tabla_vocabulario = tabla_vocabulario.reset_index(drop=True)  # Eliminar la columna de índice
+    tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
+    tabla_vocabulario = tabla_vocabulario.reset_index(drop=True)
 
     # Crear columnas para las tablas
     col1, col2 = st.columns(2)
@@ -109,5 +169,15 @@ if not df_filtered.empty:
         st.write("**Vocabulario**")
         st.table(tabla_vocabulario)
 
+    # Botón para generar el PDF
+    if st.button("Generar reporte"):
+        img_gramatica = fig_to_img(fig_gramatica)
+        img_vocabulario = fig_to_img(fig_vocabulario)
+        
+        pdf = generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, img_gramatica, img_vocabulario)
+        pdf_output = BytesIO()
+        pdf.output(pdf_output)
+        pdf_output.seek(0)
+        st.download_button(label="Descargar PDF", data=pdf_output, file_name="reporte.pdf", mime="application/pdf")
 else:
     st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
