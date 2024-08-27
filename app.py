@@ -74,11 +74,11 @@ st.set_page_config(page_title="Resultados por escuela - Prueba Estatal de Inglé
 logo_path = "logo.png"
 logo_base64 = image_to_base64(logo_path)
 
-# Mostrar el logo en la parte superior izquierda con tamaño ajustado
+# Mostrar el logo arriba del título en la parte superior de la página
 st.markdown(
     f"""
-    <div style='display: flex; align-items: center;'>
-        <img src="data:image/png;base64,{logo_base64}" width="235" height="56" style="margin-right: 15px;">
+    <div style='text-align: center;'>
+        <img src="data:image/png;base64,{logo_base64}" width="235" height="56" style="margin-bottom: 10px;">
         <h1>Resultados por escuela - Prueba Estatal de Inglés 2024</h1>
     </div>
     """,
