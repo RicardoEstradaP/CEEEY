@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 import os
+import base64
 
 # Función para convertir imagen a base64
 def image_to_base64(image_path):
@@ -180,4 +181,4 @@ if not df_filtered.empty:
         # Eliminar el archivo temporal después de la descarga
         os.remove(temp_file_path)
 else:
-    st.write("CCT no encontrado. Por favor ingresa un CCT
+    st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
