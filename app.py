@@ -202,11 +202,12 @@ if not df_filtered.empty:
         generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path)
         
         # Proporcionar un enlace para descargar el archivo PDF
-        with open(temp_file_path, "rb") as file:
-            st.download_button(label="Descargar PDF", data=file, file_name="reporte.pdf", mime="application/pdf")
-
-        # Eliminar el archivo temporal después de la descarga
-        os.remove(temp_file_path)
+        st.markdown(
+            f"""
+            <a href="data:file/pdf;base64,{base64.b64encode(open(temp_file_path, "rb").read()).decode()}" download="reporte.pdf" style="display: inline-block; background-color: red; color: white; padding: 10px 20px; text-align: center; text-decoration: none; border-radius: 5px;">Descargar PDF</a>
+            """,
+            unsafe_allow_html=True
+        )
 
     # Mostrar la leyenda en la página principal
     st.markdown(
