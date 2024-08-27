@@ -17,7 +17,7 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
 
     # Título principal
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Resultados de la Prueba Estatal de Inglés", ln=True, align="C")
+    pdf.cell(200, 10, txt="Resultados por escuela - Prueba Estatal de Inglés 2024", ln=True, align="C")
     pdf.ln(10)
     
     # Información de la escuela
@@ -68,7 +68,7 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
 df = pd.read_csv('Resultados.csv')
 
 # Configuración de la página
-st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
+st.set_page_config(page_title="Resultados por escuela - Prueba Estatal de Inglés", layout="wide")
 
 # Convertir la imagen del logo a base64
 logo_path = "logo.png"
