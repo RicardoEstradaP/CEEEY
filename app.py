@@ -55,7 +55,7 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
         pdf.ln()
     
     # Ajustar posición para pie de página (10 mm desde el borde inferior)
-    pdf.set_y(-20)  # Ajustar esta posición para el pie de página, asegurando que esté en la última página
+    pdf.ln(10)  # Espacio adicional para asegurar que el pie de página esté visible
 
     # Añadir la leyenda al final de la página
     pdf.set_font("Arial", size=9)
