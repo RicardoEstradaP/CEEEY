@@ -203,8 +203,8 @@ if not df_cct_filtered.empty:
         # Ruta para guardar el archivo PDF temporalmente
         temp_file_path = os.path.join(os.getcwd(), "reporte.pdf")
         
-        # Botón para generar y descargar el PDF
-        if st.button("Generar y Descargar PDF"):
+        # Botón para generar el PDF
+        if st.button("Generar PDF"):
             generar_pdf(escuela, turno_selected, modalidad, tabla_gramatica, tabla_vocabulario, temp_file_path, logo_path)
             with open(temp_file_path, "rb") as pdf_file:
                 PDFbyte = pdf_file.read()
