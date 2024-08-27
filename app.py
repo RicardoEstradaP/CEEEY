@@ -91,8 +91,12 @@ st.markdown(
 # Filtro por CCT
 cct_input = st.text_input("Escribe el CCT:")
 
-# Filtrar DataFrame según el valor de CCT ingresado
-df_filtered = df[df['CCT'] == cct_input]
+# Filtro por Turno
+turno_options = df['Turno'].unique()  # Obtener opciones únicas de turno
+turno_selected = st.selectbox("Selecciona el Turno:", turno_options)
+
+# Filtrar DataFrame según el valor de CCT ingresado y Turno seleccionado
+df_filtered = df[(df['CCT'] == cct_input) & (df['Turno'] == turno_selected)]
 
 # Lista de categorías en orden deseado
 categorias_ordenadas = ['Pre A1', 'A1', 'A2', 'Superior a A2']
@@ -174,36 +178,44 @@ if not df_filtered.empty:
     # Crear DataFrames para las tablas con porcentaje (para el PDF)
     tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
     tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica * 100).fillna(0)
-    tabla_gramatica_pdf = tabla_gramatica_pdf.reset_index(drop=True)
+    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
 
     tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
     tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario * 100).fillna(0)
-    tabla_vocabulario_pdf = tabla_vocabulario_pdf.reset_index(drop=True)
+    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
     
     col3, col4 = st.columns(2)
-    with col3:
-        st.write("**Gramática**")
-        st.write(tabla_gramatica_pdf[['Nivel', 'Estudiantes', 'Porcentaje']])
-    with col4:
-        st.write("**Vocabulario**")
-        st.write(tabla_vocabulario_pdf[['Nivel', 'Estudiantes', 'Porcentaje']])
-        
+
+    # Tabla de Frecuencias de Gramática
+    tabla_gramatica = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0)
+    tabla_gramatica = tabla_gramatica.reset_index()
+    tabla_gramatica.columns = ['Nivel', 'Estudiantes']
+    tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / freq_gramatica) * 100
+
+    col3.table(tabla_gramatica)
+
+    # Tabla de Frecuencias de Vocabulario
+    tabla_vocabulario = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0)
+    tabla_vocabulario = tabla_vocabulario.reset_index()
+    tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
+    tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / freq_vocabulario) * 100
+
+    col4.table(tabla_vocabulario)
+    
     # Botón para generar PDF
-    st.subheader("Generar reporte en PDF")
     if st.button("Generar PDF"):
-        file_path = os.path.join('reportes', f'Reporte_{cct_input}.pdf')
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)  # Asegura que el directorio exista
-        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, file_path, logo_path)
-        st.success(f"PDF generado con éxito: {file_path}")
-        # Mostrar botón de descarga de PDF
-        with open(file_path, "rb") as file:
-            btn = st.download_button(
-                label="Descargar PDF",
-                data=file,
-                file_name=f'Reporte_{cct_input}.pdf',
-                mime="application/pdf"
-            )
+        pdf_file_path = "reporte.pdf"
+        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, pdf_file_path, logo_path)
+        
+        # Descargar el archivo PDF
+        with open(pdf_file_path, "rb") as f:
+            pdf_data = f.read()
+        b64_pdf = base64.b64encode(pdf_data).decode()
+        href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="reporte.pdf">Descargar reporte PDF</a>'
+        st.markdown(href, unsafe_allow_html=True)
+        
+        # Eliminar el archivo PDF temporal después de la descarga
+        os.remove(pdf_file_path)
+
 else:
-    st.warning("No se encontró información para el CCT ingresado. Por favor, verifica el CCT e intenta de nuevo.")
+    st.write("No se encontraron datos para el CCT proporcionado y el turno seleccionado.")
