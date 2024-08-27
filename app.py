@@ -144,16 +144,20 @@ if not df_filtered.empty:
     # Tabla de frecuencias en dos columnas
     st.subheader("Tabla de Frecuencias")
     
-    # Crear DataFrames para las tablas sin índice adicional y con porcentaje
-    tabla_gramatica = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).reset_index()
-    tabla_gramatica.columns = ['Nivel', 'Estudiantes']
-    tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / freq_gramatica) * 100
-    tabla_gramatica = tabla_gramatica.reset_index(drop=True)
+    # Crear DataFrames para las tablas con porcentaje (para el PDF)
+    tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
+    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
+    tabla_gramatica_pdf = tabla_gramatica_pdf.reset_index(drop=True)
 
-    tabla_vocabulario = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).reset_index()
-    tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
-    tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / freq_vocabulario) * 100
-    tabla_vocabulario = tabla_vocabulario.reset_index(drop=True)
+    tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
+    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
+    tabla_vocabulario_pdf = tabla_vocabulario_pdf.reset_index(drop=True)
+
+    # Crear DataFrames para las tablas sin porcentaje (para Streamlit)
+    tabla_gramatica_visible = tabla_gramatica_pdf[['Nivel', 'Estudiantes']]
+    tabla_vocabulario_visible = tabla_vocabulario_pdf[['Nivel', 'Estudiantes']]
 
     # Crear columnas para las tablas
     col1, col2 = st.columns(2)
@@ -161,18 +165,18 @@ if not df_filtered.empty:
     # Mostrar tabla de Gramática en la primera columna
     with col1:
         st.write("**Gramática**")
-        st.table(tabla_gramatica)
+        st.table(tabla_gramatica_visible)
 
     # Mostrar tabla de Vocabulario en la segunda columna
     with col2:
         st.write("**Vocabulario**")
-        st.table(tabla_vocabulario)
+        st.table(tabla_vocabulario_visible)
 
     # Botón para generar el PDF
     if st.button("Generar reporte"):
         # Definir la ruta del archivo PDF temporal
         temp_file_path = 'reporte_temp.pdf'
-        generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, temp_file_path)
+        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path)
         
         # Proporcionar un enlace para descargar el archivo PDF
         with open(temp_file_path, "rb") as file:
