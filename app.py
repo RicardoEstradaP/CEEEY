@@ -43,7 +43,7 @@ def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, f
     for i in range(len(tabla_gramatica)):
         pdf.cell(80, 10, txt=f"{tabla_gramatica.iloc[i]['Nivel']}", border=1)
         pdf.cell(40, 10, txt=f"{tabla_gramatica.iloc[i]['Estudiantes']}", border=1)
-        pdf.cell(40, 10, txt=f"{tabla_gramatica.iloc[i]['Porcentaje']:.2f}%", border=1)
+        pdf.cell(40, 10, txt=f"{tabla_gramatica.iloc[i]['Porcentaje']}", border=1)
         pdf.ln()
     pdf.ln(10)
 
@@ -56,7 +56,7 @@ def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, f
     for i in range(len(tabla_vocabulario)):
         pdf.cell(80, 10, txt=f"{tabla_vocabulario.iloc[i]['Nivel']}", border=1)
         pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Estudiantes']}", border=1)
-        pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
+        pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']}", border=1)
         pdf.ln()
     
     # Ajustar posición para pie de página (10 mm desde el borde inferior)
@@ -172,11 +172,12 @@ if not df_cct_filtered.empty:
         # Crear dos columnas para los gráficos
         col1, col2 = st.columns(2)
 
-        # Mostrar gráfico de Gramática en la primera columna
-        col1.plotly_chart(fig_gramatica, use_container_width=True)
+        # Mostrar gráfico de Gramática y Vocabulario
+        with col1:
+            st.plotly_chart(fig_gramatica, use_container_width=True)
 
-        # Mostrar gráfico de Vocabulario en la segunda columna
-        col2.plotly_chart(fig_vocabulario, use_container_width=True)
+        with col2:
+            st.plotly_chart(fig_vocabulario, use_container_width=True)
 
         # Contar la frecuencia y calcular el porcentaje de cada nivel para Gramática y Vocabulario
         tabla_gramatica = df_gramatica['Gramática'].value_counts().reindex(categorias_ordenadas, fill_value=0).reset_index()
