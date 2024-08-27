@@ -10,8 +10,8 @@ def image_to_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
-# Función para generar el PDF y guardarlo en un archivo temporal
-def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, file_path, logo_path):
+# Función para generar el PDF y devolverlo en bytes
+def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, logo_path):
     pdf = FPDF()
     pdf.add_page()
 
@@ -67,7 +67,9 @@ def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, f
     pdf.multi_cell(0, 10, txt="La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos", align='C')
 
     # Guardar el PDF en un archivo temporal
-    pdf.output(file_path)
+    pdf_output = pdf.output(dest='S').encode('latin1')  # Generar el PDF en formato de bytes
+
+    return pdf_output
 
 # Cargar datos desde la ruta especificada
 df = pd.read_csv('Resultados.csv')
@@ -202,14 +204,12 @@ if not df_cct_filtered.empty:
 
         # Ruta para guardar el archivo PDF temporalmente
         temp_file_path = os.path.join(os.getcwd(), "reporte.pdf")
-        
-        # Botón para generar el PDF
-        if st.button("Generar PDF"):
-            generar_pdf(escuela, turno_selected, modalidad, tabla_gramatica, tabla_vocabulario, temp_file_path, logo_path)
-            with open(temp_file_path, "rb") as pdf_file:
-                PDFbyte = pdf_file.read()
+
+        # Botón para generar y descargar el PDF
+        if st.button("Generar y Descargar PDF"):
+            pdf_output = generar_pdf(escuela, turno_selected, modalidad, tabla_gramatica, tabla_vocabulario, logo_path)
             st.download_button(label="Descargar PDF",
-                               data=PDFbyte,
+                               data=pdf_output,
                                file_name=f"Reporte_{escuela}_{turno_selected}.pdf",
                                mime='application/pdf')
 else:
