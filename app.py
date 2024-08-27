@@ -51,7 +51,7 @@ def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, f
     pdf.ln(5)
     pdf.cell(80, 10, txt="Nivel", border=1)
     pdf.cell(40, 10, txt="Estudiantes", border=1)
-    pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
+    pdf.cell(40, 10, txt="Porcentaje", border=1)
     pdf.ln()
     for i in range(len(tabla_vocabulario)):
         pdf.cell(80, 10, txt=f"{tabla_vocabulario.iloc[i]['Nivel']}", border=1)
@@ -178,17 +178,16 @@ if not df_cct_filtered.empty:
         # Mostrar gráfico de Vocabulario en la segunda columna
         col2.plotly_chart(fig_vocabulario, use_container_width=True)
 
-        # Tabla de frecuencias en dos columnas
-        st.subheader("Tabla de Frecuencias")
-        
         # Contar la frecuencia y calcular el porcentaje de cada nivel para Gramática y Vocabulario
         tabla_gramatica = df_gramatica['Gramática'].value_counts().reindex(categorias_ordenadas, fill_value=0).reset_index()
         tabla_gramatica.columns = ['Nivel', 'Estudiantes']
         tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / tabla_gramatica['Estudiantes'].sum()) * 100
+        tabla_gramatica['Porcentaje'] = tabla_gramatica['Porcentaje'].apply(lambda x: f"{x:.2f}%")  # Agregar el símbolo de %
 
         tabla_vocabulario = df_vocabulario['Vocabulario'].value_counts().reindex(categorias_ordenadas, fill_value=0).reset_index()
         tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
         tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / tabla_vocabulario['Estudiantes'].sum()) * 100
+        tabla_vocabulario['Porcentaje'] = tabla_vocabulario['Porcentaje'].apply(lambda x: f"{x:.2f}%")  # Agregar el símbolo de %
 
         col3, col4 = st.columns(2)
 
