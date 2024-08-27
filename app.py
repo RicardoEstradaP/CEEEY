@@ -79,7 +79,7 @@ st.markdown(
     f"""
     <div style='display: flex; align-items: center;'>
         <img src="data:image/png;base64,{logo_base64}" width="235" height="56" style="margin-right: 15px;">
-        <h1>Resultados de la Prueba Estatal de Inglés</h1>
+        <h1>Resultados por escuela - Prueba Estatal de Inglés 2024</h1>
     </div>
     """,
     unsafe_allow_html=True
