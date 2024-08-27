@@ -97,53 +97,59 @@ cct_input = st.text_input("Escribe el CCT:")
 df_filtered = df[df['CCT'] == cct_input]
 
 if not df_filtered.empty:
-    # Extraer datos necesarios
-    escuela = df_filtered['Escuela'].values[0]
-    modalidad = df_filtered['Modalidad'].values[0]
-    tabla_gramatica_pdf = df_filtered[['Nivel Gramática', 'Estudiantes Gramática', 'Porcentaje Gramática']]
-    tabla_vocabulario_pdf = df_filtered[['Nivel Vocabulario', 'Estudiantes Vocabulario', 'Porcentaje Vocabulario']]
+    # Imprimir los nombres de las columnas para depuración
+    st.write("Nombres de las columnas en df_filtered:", df_filtered.columns.tolist())
     
-    tabla_gramatica_visible = tabla_gramatica_pdf.rename(columns={
-        'Nivel Gramática': 'Nivel',
-        'Estudiantes Gramática': 'Estudiantes'
-    })
-    
-    tabla_vocabulario_visible = tabla_vocabulario_pdf.rename(columns={
-        'Nivel Vocabulario': 'Nivel',
-        'Estudiantes Vocabulario': 'Estudiantes'
-    })
-
-    # Mostrar tablas en la aplicación
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("**Gramática**")
-        st.table(tabla_gramatica_visible)
-
-    with col2:
-        st.write("**Vocabulario**")
-        st.table(tabla_vocabulario_visible)
-
-    # Botón para generar el PDF
-    if st.button("Generar reporte"):
-        temp_file_path = "reporte.pdf"
-        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path)
+    try:
+        # Extraer datos necesarios
+        escuela = df_filtered['Escuela'].values[0]
+        modalidad = df_filtered['Modalidad'].values[0]
+        tabla_gramatica_pdf = df_filtered[['Nivel Gramática', 'Estudiantes Gramática', 'Porcentaje Gramática']]
+        tabla_vocabulario_pdf = df_filtered[['Nivel Vocabulario', 'Estudiantes Vocabulario', 'Porcentaje Vocabulario']]
         
-        # Proporcionar un enlace para descargar el archivo PDF
+        tabla_gramatica_visible = tabla_gramatica_pdf.rename(columns={
+            'Nivel Gramática': 'Nivel',
+            'Estudiantes Gramática': 'Estudiantes'
+        })
+        
+        tabla_vocabulario_visible = tabla_vocabulario_pdf.rename(columns={
+            'Nivel Vocabulario': 'Nivel',
+            'Estudiantes Vocabulario': 'Estudiantes'
+        })
+
+        # Mostrar tablas en la aplicación
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Gramática**")
+            st.table(tabla_gramatica_visible)
+
+        with col2:
+            st.write("**Vocabulario**")
+            st.table(tabla_vocabulario_visible)
+
+        # Botón para generar el PDF
+        if st.button("Generar reporte"):
+            temp_file_path = "reporte.pdf"
+            generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path)
+            
+            # Proporcionar un enlace para descargar el archivo PDF
+            st.markdown(
+                f"""
+                <a href="data:file/pdf;base64,{base64.b64encode(open(temp_file_path, "rb").read()).decode()}" download="reporte.pdf" style="display: inline-block; background-color: red; color: white; padding: 10px 20px; text-align: center; text-decoration: none; border-radius: 5px;">Descargar PDF</a>
+                """,
+                unsafe_allow_html=True
+            )
+
+        # Mostrar la leyenda en la página principal
         st.markdown(
-            f"""
-            <a href="data:file/pdf;base64,{base64.b64encode(open(temp_file_path, "rb").read()).decode()}" download="reporte.pdf" style="display: inline-block; background-color: red; color: white; padding: 10px 20px; text-align: center; text-decoration: none; border-radius: 5px;">Descargar PDF</a>
+            """
+            <div style='text-align: center; font-size: 14px; margin-top: 20px;'>
+                La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos
+            </div>
             """,
             unsafe_allow_html=True
         )
-
-    # Mostrar la leyenda en la página principal
-    st.markdown(
-        """
-        <div style='text-align: center; font-size: 14px; margin-top: 20px;'>
-            La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    except KeyError as e:
+        st.error(f"Error de clave: {e}. Verifica los nombres de las columnas.")
 else:
     st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
