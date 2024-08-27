@@ -10,7 +10,7 @@ def image_to_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
-# Función para generar el PDF y devolverlo en bytes
+# Función para generar el PDF y devolverlo como bytes
 def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, logo_path):
     pdf = FPDF()
     pdf.add_page()
@@ -66,9 +66,11 @@ def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, l
     pdf.set_font("Arial", size=9)
     pdf.multi_cell(0, 10, txt="La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos", align='C')
 
-    # Guardar el PDF en un archivo temporal
-    pdf_output = pdf.output(dest='S').encode('latin1')  # Generar el PDF en formato de bytes
-
+    # Guardar el PDF en memoria
+    from io import BytesIO
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
     return pdf_output
 
 # Cargar datos desde la ruta especificada
@@ -201,9 +203,6 @@ if not df_cct_filtered.empty:
         with col4:
             st.markdown("**Vocabulario**")
             st.table(tabla_vocabulario)
-
-        # Ruta para guardar el archivo PDF temporalmente
-        temp_file_path = os.path.join(os.getcwd(), "reporte.pdf")
 
         # Botón para generar y descargar el PDF
         if st.button("Generar y Descargar PDF"):
