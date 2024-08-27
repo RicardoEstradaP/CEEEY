@@ -15,11 +15,6 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
     pdf = FPDF()
     pdf.add_page()
 
-    # Añadir el logo
-    logo_path = "logo.png"
-    pdf.image(logo_path, x=10, y=10, w=469/5, h=112/5)  # Ajusta el tamaño del logo a 469x112 píxeles
-    pdf.ln(30)  # Espacio para el título
-
     # Título principal
     pdf.set_font("Arial", size=12)
     pdf.cell(200, 10, txt="Resultados por escuela - Prueba Estatal de Inglés 2024", ln=True, align="C")
@@ -96,29 +91,107 @@ cct_input = st.text_input("Escribe el CCT:")
 # Filtrar DataFrame según el valor de CCT ingresado
 df_filtered = df[df['CCT'] == cct_input]
 
-if not df_filtered.empty:
-    # Extraer datos necesarios
-    escuela = df_filtered['Escuela'].values[0]
-    modalidad = df_filtered['Modalidad'].values[0]
-    tabla_gramatica_pdf = df_filtered[['Nivel Gramática', 'Estudiantes Gramática', 'Porcentaje Gramática']]
-    tabla_vocabulario_pdf = df_filtered[['Nivel Vocabulario', 'Estudiantes Vocabulario', 'Porcentaje Vocabulario']]
-    
-    tabla_gramatica_visible = tabla_gramatica_pdf.rename(columns={
-        'Nivel Gramática': 'Nivel',
-        'Estudiantes Gramática': 'Estudiantes'
-    })
-    
-    tabla_vocabulario_visible = tabla_vocabulario_pdf.rename(columns={
-        'Nivel Vocabulario': 'Nivel',
-        'Estudiantes Vocabulario': 'Estudiantes'
-    })
+# Lista de categorías en orden deseado
+categorias_ordenadas = ['Pre A1', 'A1', 'A2', 'Superior a A2']
 
-    # Mostrar tablas en la aplicación
+# Definir colores gradientes para los gráficos de sectores
+colores_gramatica = {
+    'Pre A1': '#a2c9a0',  # Verde más claro
+    'A1': '#7aab7e',
+    'A2': '#4a8d54',
+    'Superior a A2': '#2d5b30'  # Verde más oscuro
+}
+
+colores_vocabulario = {
+    'Pre A1': '#f9f3a6',  # Amarillo más claro
+    'A1': '#f3e46b',
+    'A2': '#f1d236',
+    'Superior a A2': '#f0b30f'  # Amarillo más oscuro
+}
+
+if not df_filtered.empty:
+    # Mostrar Escuela y Modalidad asociadas al CCT
+    escuela = df_filtered['Escuela'].iloc[0]
+    modalidad = df_filtered['Modalidad'].iloc[0]
+    st.write(f"**Escuela:** {escuela}")
+    st.write(f"**Modalidad:** {modalidad}")
+
+    # Filtrar valores no nulos para gráficos
+    df_gramatica = df_filtered[df_filtered['Gramática'].isin(categorias_ordenadas)]
+    df_vocabulario = df_filtered[df_filtered['Vocabulario'].isin(categorias_ordenadas)]
+
+    # Contar la frecuencia de estudiantes
+    freq_gramatica = df_gramatica['Gramática'].count()
+    freq_vocabulario = df_vocabulario['Vocabulario'].count()
+
+    # Gráfico de sectores para Gramática con gradiente verde militar
+    fig_gramatica = px.pie(df_gramatica, names='Gramática', 
+                           category_orders={'Gramática': categorias_ordenadas},
+                           color='Gramática',
+                           color_discrete_map=colores_gramatica)
+    fig_gramatica.update_layout(
+        title={
+            'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes",
+            'y':0.9,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
+        margin=dict(t=120)
+    )
+
+    # Gráfico de sectores para Vocabulario con gradiente amarillo mostaza
+    fig_vocabulario = px.pie(df_vocabulario, names='Vocabulario', 
+                             category_orders={'Vocabulario': categorias_ordenadas},
+                             color='Vocabulario',
+                             color_discrete_map=colores_vocabulario)
+    fig_vocabulario.update_layout(
+        title={
+            'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes",
+            'y':0.9,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
+        margin=dict(t=120)
+    )
+
+    # Crear dos columnas para los gráficos
     col1, col2 = st.columns(2)
+
+    # Mostrar gráfico de Gramática en la primera columna
+    col1.plotly_chart(fig_gramatica, use_container_width=True)
+
+    # Mostrar gráfico de Vocabulario en la segunda columna
+    col2.plotly_chart(fig_vocabulario, use_container_width=True)
+
+    # Tabla de frecuencias en dos columnas
+    st.subheader("Tabla de Frecuencias")
+    
+    # Crear DataFrames para las tablas con porcentaje (para el PDF)
+    tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
+    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
+    tabla_gramatica_pdf = tabla_gramatica_pdf.reset_index(drop=True)
+
+    tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
+    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
+    tabla_vocabulario_pdf = tabla_vocabulario_pdf.reset_index(drop=True)
+
+    # Crear DataFrames para las tablas sin porcentaje (para Streamlit)
+    tabla_gramatica_visible = tabla_gramatica_pdf[['Nivel', 'Estudiantes']]
+    tabla_vocabulario_visible = tabla_vocabulario_pdf[['Nivel', 'Estudiantes']]
+
+    # Crear columnas para las tablas
+    col1, col2 = st.columns(2)
+
+    # Mostrar tabla de Gramática en la primera columna
     with col1:
         st.write("**Gramática**")
         st.table(tabla_gramatica_visible)
 
+    # Mostrar tabla de Vocabulario en la segunda columna
     with col2:
         st.write("**Vocabulario**")
         st.table(tabla_vocabulario_visible)
