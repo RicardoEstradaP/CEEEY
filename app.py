@@ -182,45 +182,45 @@ if not df_cct_filtered.empty:
         # Crear DataFrames para las tablas con porcentaje (para el PDF)
         tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
         tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
-        tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
+        tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / tabla_gramatica_pdf['Estudiantes'].sum()) * 100
 
         tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
         tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
-        tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
-        
-        col3, col4 = st.columns(2)
+        tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / tabla_vocabulario_pdf['Estudiantes'].sum()) * 100
 
-        # Tabla de Frecuencias de Gramática
-        tabla_gramatica = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0)
-        tabla_gramatica = tabla_gramatica.reset_index()
+        # Mostrar las tablas en dos columnas
+        col1, col2 = st.columns(2)
+
+        col1.write("**Gramática**")
+        tabla_gramatica = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
         tabla_gramatica.columns = ['Nivel', 'Estudiantes']
-        tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / freq_gramatica) * 100
+        tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / tabla_gramatica['Estudiantes'].sum()) * 100
+        tabla_gramatica['Porcentaje'] = tabla_gramatica['Porcentaje'].map('{:.2f}%'.format)
+        col1.table(tabla_gramatica)
 
-        col3.table(tabla_gramatica)
-
-        # Tabla de Frecuencias de Vocabulario
-        tabla_vocabulario = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0)
-        tabla_vocabulario = tabla_vocabulario.reset_index()
+        col2.write("**Vocabulario**")
+        tabla_vocabulario = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
         tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
-        tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / freq_vocabulario) * 100
+        tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / tabla_vocabulario['Estudiantes'].sum()) * 100
+        tabla_vocabulario['Porcentaje'] = tabla_vocabulario['Porcentaje'].map('{:.2f}%'.format)
+        col2.table(tabla_vocabulario)
 
-        col4.table(tabla_vocabulario)
-        
-        # Botón para generar PDF
+        # Generar el PDF cuando se hace clic en el botón
         if st.button("Generar PDF"):
-            pdf_file_path = "reporte.pdf"
-            generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, pdf_file_path, logo_path)
+            # Guardar el archivo temporalmente
+            file_path = "reporte_temporal.pdf"
+            generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, file_path, logo_path)
             
-            # Descargar el archivo PDF
-            with open(pdf_file_path, "rb") as f:
-                pdf_data = f.read()
-            b64_pdf = base64.b64encode(pdf_data).decode()
-            href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="reporte.pdf">Descargar reporte PDF</a>'
-            st.markdown(href, unsafe_allow_html=True)
-            
-            # Eliminar el archivo PDF temporal después de la descarga
-            os.remove(pdf_file_path)
+            # Mostrar enlace de descarga del PDF
+            with open(file_path, "rb") as pdf_file:
+                PDFbyte = pdf_file.read()
+
+            st.download_button(label="Descargar PDF",
+                               data=PDFbyte,
+                               file_name="reporte.pdf",
+                               mime='application/octet-stream')
+
     else:
-        st.write("No se encontraron datos para el CCT proporcionado y el turno seleccionado.")
+        st.warning("No hay datos disponibles para el turno seleccionado.")
 else:
-    st.write("No se encontraron datos para el CCT proporcionado.")
+    st.warning("No hay datos disponibles para el CCT ingresado.")
