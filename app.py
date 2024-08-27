@@ -65,13 +65,13 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
     pdf.output(file_path)
 
 # Cargar datos desde la ruta especificada
-df = pd.read_csv('D:\\Phyton\\Pruebas\\PEI-1\\Resultados.csv')
+df = pd.read_csv('Resultados.csv')
 
 # Configuración de la página
 st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
 
 # Convertir la imagen del logo a base64
-logo_path = "D:\\Phyton\\Pruebas\\PEI-1\\logo.png"
+logo_path = "logo.png"
 logo_base64 = image_to_base64(logo_path)
 
 # Mostrar el logo en la parte superior izquierda con tamaño ajustado
