@@ -127,99 +127,75 @@ if not df_filtered.empty:
     freq_gramatica = df_gramatica['Gramática'].count()
     freq_vocabulario = df_vocabulario['Vocabulario'].count()
 
-    # Gráfico de sectores para Gramática con gradiente verde militar
-    fig_gramatica = px.pie(df_gramatica, names='Gramática', 
-                           category_orders={'Gramática': categorias_ordenadas},
-                           color='Gramática',
-                           color_discrete_map=colores_gramatica)
-    fig_gramatica.update_layout(
-        title={
-            'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes",
-            'y':0.9,
-            'x':0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'
-        },
-        margin=dict(t=120)
-    )
+    # Comprobar si hay datos para gráficos
+    if freq_gramatica > 0:
+        # Gráfico de sectores para Gramática con gradiente verde militar
+        fig_gramatica = px.pie(df_gramatica, names='Gramática', 
+                               category_orders={'Gramática': categorias_ordenadas},
+                               color='Gramática',
+                               color_discrete_map=colores_gramatica)
+        fig_gramatica.update_layout(
+            title={
+                'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes",
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            },
+            margin=dict(t=120)
+        )
+        col1.plotly_chart(fig_gramatica, use_container_width=True)
+    else:
+        col1.write("No hay datos disponibles para Gramática.")
 
-    # Gráfico de sectores para Vocabulario con gradiente amarillo mostaza
-    fig_vocabulario = px.pie(df_vocabulario, names='Vocabulario', 
-                             category_orders={'Vocabulario': categorias_ordenadas},
-                             color='Vocabulario',
-                             color_discrete_map=colores_vocabulario)
-    fig_vocabulario.update_layout(
-        title={
-            'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes",
-            'y':0.9,
-            'x':0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'
-        },
-        margin=dict(t=120)
-    )
-
-    # Crear dos columnas para los gráficos
-    col1, col2 = st.columns(2)
-
-    # Mostrar gráfico de Gramática en la primera columna
-    col1.plotly_chart(fig_gramatica, use_container_width=True)
-
-    # Mostrar gráfico de Vocabulario en la segunda columna
-    col2.plotly_chart(fig_vocabulario, use_container_width=True)
+    if freq_vocabulario > 0:
+        # Gráfico de sectores para Vocabulario con gradiente amarillo mostaza
+        fig_vocabulario = px.pie(df_vocabulario, names='Vocabulario', 
+                                 category_orders={'Vocabulario': categorias_ordenadas},
+                                 color='Vocabulario',
+                                 color_discrete_map=colores_vocabulario)
+        fig_vocabulario.update_layout(
+            title={
+                'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes",
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            },
+            margin=dict(t=120)
+        )
+        col2.plotly_chart(fig_vocabulario, use_container_width=True)
+    else:
+        col2.write("No hay datos disponibles para Vocabulario.")
 
     # Tabla de frecuencias en dos columnas
     st.subheader("Tabla de Frecuencias")
     
     # Crear DataFrames para las tablas con porcentaje (para el PDF)
-    tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_gramatica_pdf = df_filtered['Gramática'].value_counts(normalize=False).reindex(categorias_ordenadas, fill_value=0).reset_index()
     tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
-    tabla_gramatica_pdf = tabla_gramatica_pdf.reset_index(drop=True)
+    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / tabla_gramatica_pdf['Estudiantes'].sum()) * 100
 
-    tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts(normalize=False).reindex(categorias_ordenadas, fill_value=0).reset_index()
     tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
-    tabla_vocabulario_pdf = tabla_vocabulario_pdf.reset_index(drop=True)
+    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / tabla_vocabulario_pdf['Estudiantes'].sum()) * 100
 
-    # Crear DataFrames para las tablas sin porcentaje (para Streamlit)
-    tabla_gramatica_visible = tabla_gramatica_pdf[['Nivel', 'Estudiantes']]
-    tabla_vocabulario_visible = tabla_vocabulario_pdf[['Nivel', 'Estudiantes']]
-
-    # Crear columnas para las tablas
     col1, col2 = st.columns(2)
-
-    # Mostrar tabla de Gramática en la primera columna
+    
     with col1:
-        st.write("**Gramática**")
-        st.table(tabla_gramatica_visible)
+        st.markdown("**Gramática**")
+        st.table(tabla_gramatica_pdf)
 
-    # Mostrar tabla de Vocabulario en la segunda columna
     with col2:
-        st.write("**Vocabulario**")
-        st.table(tabla_vocabulario_visible)
+        st.markdown("**Vocabulario**")
+        st.table(tabla_vocabulario_pdf)
 
-    # Botón para generar el PDF
-    if st.button("Generar reporte"):
-        temp_file_path = "reporte.pdf"
-        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path, logo_path)
-        
-        # Proporcionar un enlace para descargar el archivo PDF
-        st.markdown(
-            f"""
-            <a href="data:file/pdf;base64,{base64.b64encode(open(temp_file_path, "rb").read()).decode()}" download="reporte.pdf" style="display: inline-block; background-color: red; color: white; padding: 10px 20px; text-align: center; text-decoration: none; border-radius: 5px;">Descargar PDF</a>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # Mostrar la leyenda en la página principal
-    st.markdown(
-        """
-        <div style='text-align: center; font-size: 14px; margin-top: 20px;'>
-            La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    # Botón para descargar el PDF
+    if st.button("Descargar resultados en PDF"):
+        file_path = "resultados.pdf"
+        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, file_path, logo_path)
+        with open(file_path, "rb") as pdf_file:
+            pdf_data = pdf_file.read()
+            st.download_button(label="Descargar PDF", data=pdf_data, file_name=f"Resultados_{escuela}.pdf", mime="application/pdf")
 else:
-    st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
+    st.write("No se encontró ningún resultado para el CCT proporcionado.")
