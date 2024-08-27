@@ -54,11 +54,11 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
         pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
         pdf.ln()
     
-    # Ajustar posición para pie de página
-    pdf.set_y(-10)  # Ajusta esta posición para mover el pie de página
+    # Ajustar posición para pie de página (10 mm desde el borde inferior)
+    pdf.set_y(-20)  # Ajustar esta posición para el pie de página, asegurando que esté en la última página
 
     # Añadir la leyenda al final de la página
-    pdf.set_font("Arial", size=7)
+    pdf.set_font("Arial", size=9)
     pdf.multi_cell(0, 10, txt="La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos", align='C')
 
     # Guardar el PDF en un archivo temporal
