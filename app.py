@@ -5,6 +5,9 @@ from fpdf import FPDF
 import os
 import base64
 
+# Definir categorías ordenadas (ajusta esto según tus necesidades)
+categorias_ordenadas = ['Bajo', 'Medio', 'Alto']
+
 # Función para convertir imagen a base64
 def image_to_base64(image_path):
     with open(image_path, "rb") as img_file:
@@ -175,7 +178,8 @@ if not df_filtered.empty:
     tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
     tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
     tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
-    
+
+    # Crear dos columnas para las tablas
     col3, col4 = st.columns(2)
 
     # Tabla de Frecuencias de Gramática
@@ -193,7 +197,7 @@ if not df_filtered.empty:
     tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / freq_vocabulario) * 100
 
     col4.table(tabla_vocabulario)
-    
+
     # Botón para generar PDF
     if st.button("Generar PDF"):
         pdf_file_path = "reporte.pdf"
