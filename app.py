@@ -92,8 +92,8 @@ st.markdown(
 cct_input = st.text_input("Escribe el CCT:")
 
 # Filtro por Turno
-turno_options = df['Turno'].unique()  # Obtener opciones únicas de turno
-turno_selected = st.selectbox("Selecciona el Turno:", turno_options)
+turno_options = df[df['CCT'] == cct_input]['Turno'].unique() if cct_input else []
+turno_selected = st.selectbox("Selecciona el Turno:", turno_options) if turno_options else st.selectbox("Selecciona el Turno:", [])
 
 # Filtrar DataFrame según el valor de CCT ingresado y Turno seleccionado
 df_filtered = df[(df['CCT'] == cct_input) & (df['Turno'] == turno_selected)]
