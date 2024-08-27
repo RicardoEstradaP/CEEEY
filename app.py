@@ -3,9 +3,12 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 from io import BytesIO
+import base64  # Importa la biblioteca base64
 
-# Ruta del logo
-logo_path = "logo.png"
+# Función para convertir imagen a base64
+def image_to_base64(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
 
 # Función para generar el PDF
 def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
@@ -54,16 +57,25 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
     return pdf
 
 # Cargar datos desde la ruta especificada
-df = pd.read_csv('Resultados.csv')
+df = pd.read_csv('D:\\Phyton\\Pruebas\\PEI-1\\Resultados.csv')
 
 # Configuración de la página
-st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
+st.set_page_config(page_title="        Resultados de la Prueba Estatal de Inglés", layout="wide")
 
-# Mostrar logo en el encabezado
-st.image(logo_path, width=100)  # Ajusta el ancho según sea necesario
+# Convertir la imagen del logo a base64
+logo_path = "D:\\Phyton\\Pruebas\\PEI-1\\logo.png"
+logo_base64 = image_to_base64(logo_path)
 
-# Título del Dashboard
-st.title("Resultados de la Prueba Estatal de Inglés")
+# Mostrar el logo en la parte superior izquierda con tamaño ajustado
+st.markdown(
+    f"""
+    <div style='display: flex; align-items: center;'>
+        <img src="data:image/png;base64,{logo_base64}" width="235" height="56" style="margin-right: 15px;">
+        <h1>Resultados de la Prueba Estatal de Inglés</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Filtro por CCT
 cct_input = st.text_input("Escribe el CCT:")
