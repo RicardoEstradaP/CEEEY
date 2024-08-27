@@ -94,6 +94,21 @@ df_filtered = df[df['CCT'] == cct_input]
 # Lista de categorías en orden deseado
 categorias_ordenadas = ['Pre A1', 'A1', 'A2', 'Superior a A2']
 
+# Definir colores gradientes para los gráficos de sectores
+colores_gramatica = {
+    'Pre A1': '#a2c9a0',  # Verde más claro
+    'A1': '#7aab7e',
+    'A2': '#4a8d54',
+    'Superior a A2': '#2d5b30'  # Verde más oscuro
+}
+
+colores_vocabulario = {
+    'Pre A1': '#f9f3a6',  # Amarillo más claro
+    'A1': '#f3e46b',
+    'A2': '#f1d236',
+    'Superior a A2': '#f0b30f'  # Amarillo más oscuro
+}
+
 if not df_filtered.empty:
     # Mostrar Escuela y Modalidad asociadas al CCT
     escuela = df_filtered['Escuela'].iloc[0]
@@ -109,10 +124,11 @@ if not df_filtered.empty:
     freq_gramatica = df_gramatica['Gramática'].count()
     freq_vocabulario = df_vocabulario['Vocabulario'].count()
 
-    # Gráfico de sectores para Gramática con colores y orden constante
+    # Gráfico de sectores para Gramática con gradiente verde militar
     fig_gramatica = px.pie(df_gramatica, names='Gramática', 
                            category_orders={'Gramática': categorias_ordenadas},
-                           color='Gramática')
+                           color='Gramática',
+                           color_discrete_map=colores_gramatica)
     fig_gramatica.update_layout(
         title={
             'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes",
@@ -124,10 +140,11 @@ if not df_filtered.empty:
         margin=dict(t=120)
     )
 
-    # Gráfico de sectores para Vocabulario con colores y orden constante
+    # Gráfico de sectores para Vocabulario con gradiente amarillo mostaza
     fig_vocabulario = px.pie(df_vocabulario, names='Vocabulario', 
                              category_orders={'Vocabulario': categorias_ordenadas},
-                             color='Vocabulario')
+                             color='Vocabulario',
+                             color_discrete_map=colores_vocabulario)
     fig_vocabulario.update_layout(
         title={
             'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes",
