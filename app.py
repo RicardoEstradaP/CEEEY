@@ -5,7 +5,7 @@ from fpdf import FPDF
 from io import BytesIO
 
 # Ruta del logo
-logo_path = "D:\\Phyton\\Pruebas\\PEI-1\\logo.png"
+logo_path = "logo.png"
 
 # Función para generar el PDF
 def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
@@ -54,7 +54,7 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
     return pdf
 
 # Cargar datos desde la ruta especificada
-df = pd.read_csv('D:\\Phyton\\Pruebas\\PEI-1\\Resultados.csv')
+df = pd.read_csv('Resultados.csv')
 
 # Configuración de la página
 st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
