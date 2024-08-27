@@ -172,54 +172,38 @@ if not df_filtered.empty:
     st.subheader("Tabla de Frecuencias")
     
     # Crear DataFrames para las tablas con porcentaje (para el PDF)
-    tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
     tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
+    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica * 100).fillna(0)
     tabla_gramatica_pdf = tabla_gramatica_pdf.reset_index(drop=True)
 
-    tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).reset_index()
+    tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
     tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
+    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario * 100).fillna(0)
     tabla_vocabulario_pdf = tabla_vocabulario_pdf.reset_index(drop=True)
-
-    # Crear DataFrames para las tablas sin porcentaje (para Streamlit)
-    tabla_gramatica_visible = tabla_gramatica_pdf[['Nivel', 'Estudiantes']]
-    tabla_vocabulario_visible = tabla_vocabulario_pdf[['Nivel', 'Estudiantes']]
-
-    # Crear columnas para las tablas
-    col1, col2 = st.columns(2)
-
-    # Mostrar tabla de Gramática en la primera columna
-    with col1:
+    
+    col3, col4 = st.columns(2)
+    with col3:
         st.write("**Gramática**")
-        st.table(tabla_gramatica_visible)
-
-    # Mostrar tabla de Vocabulario en la segunda columna
-    with col2:
+        st.write(tabla_gramatica_pdf[['Nivel', 'Estudiantes', 'Porcentaje']])
+    with col4:
         st.write("**Vocabulario**")
-        st.table(tabla_vocabulario_visible)
-
-    # Botón para generar el PDF
-    if st.button("Generar reporte"):
-        temp_file_path = "reporte.pdf"
-        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path, logo_path)
+        st.write(tabla_vocabulario_pdf[['Nivel', 'Estudiantes', 'Porcentaje']])
         
-        # Proporcionar un enlace para descargar el archivo PDF
-        st.markdown(
-            f"""
-            <a href="data:file/pdf;base64,{base64.b64encode(open(temp_file_path, "rb").read()).decode()}" download="reporte.pdf" style="display: inline-block; background-color: red; color: white; padding: 10px 20px; text-align: center; text-decoration: none; border-radius: 5px;">Descargar PDF</a>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # Mostrar la leyenda en la página principal
-    st.markdown(
-        """
-        <div style='text-align: center; font-size: 14px; margin-top: 20px;'>
-            La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    # Botón para generar PDF
+    st.subheader("Generar reporte en PDF")
+    if st.button("Generar PDF"):
+        file_path = os.path.join('reportes', f'Reporte_{cct_input}.pdf')
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)  # Asegura que el directorio exista
+        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, file_path, logo_path)
+        st.success(f"PDF generado con éxito: {file_path}")
+        # Mostrar botón de descarga de PDF
+        with open(file_path, "rb") as file:
+            btn = st.download_button(
+                label="Descargar PDF",
+                data=file,
+                file_name=f'Reporte_{cct_input}.pdf',
+                mime="application/pdf"
+            )
 else:
-    st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
+    st.warning("No se encontró información para el CCT ingresado. Por favor, verifica el CCT e intenta de nuevo.")
