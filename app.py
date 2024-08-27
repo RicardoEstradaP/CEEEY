@@ -2,16 +2,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
-from io import BytesIO
-import base64
+import os
 
 # Función para convertir imagen a base64
 def image_to_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
-# Función para generar el PDF
-def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
+# Función para generar el PDF y guardarlo en un archivo temporal
+def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_path):
     pdf = FPDF()
     pdf.add_page()
 
@@ -54,11 +53,8 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
         pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
         pdf.ln()
 
-    # Guardar el PDF en un objeto BytesIO y devolverlo
-    pdf_output = BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
-    return pdf_output
+    # Guardar el PDF en un archivo temporal
+    pdf.output(file_path)
 
 # Cargar datos desde la ruta especificada
 df = pd.read_csv('Resultados.csv')
@@ -173,9 +169,15 @@ if not df_filtered.empty:
 
     # Botón para generar el PDF
     if st.button("Generar reporte"):
-        pdf_output = generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario)
-        st.download_button(label="Descargar PDF", data=pdf_output, file_name="reporte.pdf", mime="application/pdf")
+        # Definir la ruta del archivo PDF temporal
+        temp_file_path = 'reporte_temp.pdf'
+        generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, temp_file_path)
+        
+        # Proporcionar un enlace para descargar el archivo PDF
+        with open(temp_file_path, "rb") as file:
+            st.download_button(label="Descargar PDF", data=file, file_name="reporte.pdf", mime="application/pdf")
+
+        # Eliminar el archivo temporal después de la descarga
+        os.remove(temp_file_path)
 else:
-    st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
-
-
+    st.write("CCT no encontrado. Por favor ingresa un CCT
