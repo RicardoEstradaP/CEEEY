@@ -1,83 +1,66 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import pdfkit
+from fpdf import FPDF
 from io import BytesIO
 
+# Ruta del logo
+logo_path = "D:\\Phyton\\Pruebas\\PEI-1\\logo.png"
+
 # Función para generar el PDF
-def generar_pdf_html(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
-    # Crear el contenido HTML del PDF
-    html_content = f"""
-    <html>
-    <head>
-        <style>
-            body {{ font-family: Arial, sans-serif; }}
-            h1 {{ text-align: center; }}
-            table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
-            th, td {{ border: 1px solid black; padding: 8px; text-align: center; }}
-            th {{ background-color: #f2f2f2; }}
-            .title {{ text-align: center; font-size: 14px; margin-top: 20px; }}
-        </style>
-    </head>
-    <body>
-        <h1>Resultados de la Prueba Estatal de Inglés</h1>
-        <p><strong>Escuela:</strong> {escuela}</p>
-        <p><strong>Modalidad:</strong> {modalidad}</p>
+def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
+    pdf = FPDF()
+    pdf.add_page()
 
-        <div class="title">Tabla de Frecuencias: Gramática</div>
-        <table>
-            <tr>
-                <th>Nivel</th>
-                <th>Estudiantes</th>
-                <th>Porcentaje</th>
-            </tr>
-    """
+    # Título principal
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Resultados de la Prueba Estatal de Inglés", ln=True, align="C")
+    pdf.ln(10)
     
+    # Información de la escuela
+    pdf.set_font("Arial", size=10)
+    pdf.cell(200, 10, txt=f"Escuela: {escuela}", ln=True)
+    pdf.cell(200, 10, txt=f"Modalidad: {modalidad}", ln=True)
+    pdf.ln(10)
+
+    # Añadir tablas de frecuencias con porcentaje
+    pdf.set_font("Arial", size=10)
+    
+    pdf.cell(100, 10, txt="Tabla de Frecuencias: Gramática", ln=True)
+    pdf.ln(5)
+    pdf.cell(80, 10, txt="Nivel", border=1)
+    pdf.cell(40, 10, txt="Estudiantes", border=1)
+    pdf.cell(40, 10, txt="Porcentaje", border=1)
+    pdf.ln()
     for i in range(len(tabla_gramatica)):
-        html_content += f"""
-            <tr>
-                <td>{tabla_gramatica.iloc[i]['Nivel']}</td>
-                <td>{tabla_gramatica.iloc[i]['Estudiantes']}</td>
-                <td>{tabla_gramatica.iloc[i]['Porcentaje']:.2f}%</td>
-            </tr>
-        """
-    
-    html_content += """
-        </table>
+        pdf.cell(80, 10, txt=f"{tabla_gramatica.iloc[i]['Nivel']}", border=1)
+        pdf.cell(40, 10, txt=f"{tabla_gramatica.iloc[i]['Estudiantes']}", border=1)
+        pdf.cell(40, 10, txt=f"{tabla_gramatica.iloc[i]['Porcentaje']:.2f}%", border=1)
+        pdf.ln()
+    pdf.ln(10)
 
-        <div class="title">Tabla de Frecuencias: Vocabulario</div>
-        <table>
-            <tr>
-                <th>Nivel</th>
-                <th>Estudiantes</th>
-                <th>Porcentaje</th>
-            </tr>
-    """
-    
+    pdf.cell(100, 10, txt="Tabla de Frecuencias: Vocabulario", ln=True)
+    pdf.ln(5)
+    pdf.cell(80, 10, txt="Nivel", border=1)
+    pdf.cell(40, 10, txt="Estudiantes", border=1)
+    pdf.cell(40, 10, txt="Porcentaje", border=1)
+    pdf.ln()
     for i in range(len(tabla_vocabulario)):
-        html_content += f"""
-            <tr>
-                <td>{tabla_vocabulario.iloc[i]['Nivel']}</td>
-                <td>{tabla_vocabulario.iloc[i]['Estudiantes']}</td>
-                <td>{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%</td>
-            </tr>
-        """
-    
-    html_content += """
-        </table>
-    </body>
-    </html>
-    """
-    
-    # Generar PDF desde el HTML
-    pdf_output = pdfkit.from_string(html_content, False)
-    return pdf_output
+        pdf.cell(80, 10, txt=f"{tabla_vocabulario.iloc[i]['Nivel']}", border=1)
+        pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Estudiantes']}", border=1)
+        pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
+        pdf.ln()
+
+    return pdf
 
 # Cargar datos desde la ruta especificada
-df = pd.read_csv('Resultados.csv')
+df = pd.read_csv('D:\\Phyton\\Pruebas\\PEI-1\\Resultados.csv')
 
 # Configuración de la página
 st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
+
+# Mostrar logo en el encabezado
+st.image(logo_path, width=100)  # Ajusta el ancho según sea necesario
 
 # Título del Dashboard
 st.title("Resultados de la Prueba Estatal de Inglés")
@@ -174,7 +157,10 @@ if not df_filtered.empty:
 
     # Botón para generar el PDF
     if st.button("Generar reporte"):
-        pdf_output = generar_pdf_html(escuela, modalidad, tabla_gramatica, tabla_vocabulario)
+        pdf = generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario)
+        pdf_output = BytesIO()
+        pdf.output(pdf_output)
+        pdf_output.seek(0)
         st.download_button(label="Descargar PDF", data=pdf_output, file_name="reporte.pdf", mime="application/pdf")
 else:
     st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
