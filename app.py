@@ -53,18 +53,25 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
         pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Estudiantes']}", border=1)
         pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
         pdf.ln()
+    
+    # Ajustar posición para pie de página
+    pdf.set_y(-30)  # Ajusta esta posición para mover el pie de página
+
+    # Añadir la leyenda al final de la página
+    pdf.set_font("Arial", size=7)
+    pdf.multi_cell(0, 10, txt="La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos", align='C')
 
     # Guardar el PDF en un archivo temporal
     pdf.output(file_path)
 
 # Cargar datos desde la ruta especificada
-df = pd.read_csv('Resultados.csv')
+df = pd.read_csv('D:\\Phyton\\Pruebas\\PEI-1\\Resultados.csv')
 
 # Configuración de la página
 st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
 
 # Convertir la imagen del logo a base64
-logo_path = "logo.png"
+logo_path = "D:\\Phyton\\Pruebas\\PEI-1\\logo.png"
 logo_base64 = image_to_base64(logo_path)
 
 # Mostrar el logo en la parte superior izquierda con tamaño ajustado
@@ -174,8 +181,7 @@ if not df_filtered.empty:
 
     # Botón para generar el PDF
     if st.button("Generar reporte"):
-        # Definir la ruta del archivo PDF temporal
-        temp_file_path = 'reporte_temp.pdf'
+        temp_file_path = "reporte.pdf"
         generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path)
         
         # Proporcionar un enlace para descargar el archivo PDF
@@ -184,5 +190,15 @@ if not df_filtered.empty:
 
         # Eliminar el archivo temporal después de la descarga
         os.remove(temp_file_path)
+
+    # Mostrar la leyenda en la página principal
+    st.markdown(
+        """
+        <div style='text-align: center; font-size: 14px; margin-top: 20px;'>
+            La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 else:
     st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
