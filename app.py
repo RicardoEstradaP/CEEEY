@@ -203,14 +203,16 @@ if not df_cct_filtered.empty:
         # Ruta para guardar el archivo PDF temporalmente
         temp_file_path = os.path.join(os.getcwd(), "reporte.pdf")
         
-        # Botón para generar el PDF
+        # Botón para generar y descargar el PDF
         if st.button("Generar PDF"):
             generar_pdf(escuela, turno_selected, modalidad, tabla_gramatica, tabla_vocabulario, temp_file_path, logo_path)
-            with open(temp_file_path, "rb") as pdf_file:
-                PDFbyte = pdf_file.read()
-            st.download_button(label="Descargar PDF",
-                               data=PDFbyte,
-                               file_name=f"Reporte_{escuela}_{turno_selected}.pdf",
-                               mime='application/pdf')
+            st.markdown(
+                f"""
+                <a href="data:application/pdf;base64,{base64.b64encode(open(temp_file_path, "rb").read()).decode()}" download="Reporte_{escuela}_{turno_selected}.pdf">
+                    <button style="background-color: red; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;">Descargar PDF</button>
+                </a>
+                """,
+                unsafe_allow_html=True
+            )
 else:
     st.write("No se encontró el CCT proporcionado.")
