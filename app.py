@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 from io import BytesIO
-import base64  # Importa la biblioteca base64
+import base64
 
 # Función para convertir imagen a base64
 def image_to_base64(image_path):
@@ -54,13 +54,17 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario):
         pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
         pdf.ln()
 
-    return pdf
+    # Guardar el PDF en un objeto BytesIO y devolverlo
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
+    return pdf_output
 
 # Cargar datos desde la ruta especificada
 df = pd.read_csv('Resultados.csv')
 
 # Configuración de la página
-st.set_page_config(page_title="        Resultados de la Prueba Estatal de Inglés", layout="wide")
+st.set_page_config(page_title="Resultados de la Prueba Estatal de Inglés", layout="wide")
 
 # Convertir la imagen del logo a base64
 logo_path = "logo.png"
@@ -169,10 +173,9 @@ if not df_filtered.empty:
 
     # Botón para generar el PDF
     if st.button("Generar reporte"):
-        pdf = generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario)
-        pdf_output = BytesIO()
-        pdf.output(pdf_output)
-        pdf_output.seek(0)
+        pdf_output = generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario)
         st.download_button(label="Descargar PDF", data=pdf_output, file_name="reporte.pdf", mime="application/pdf")
 else:
     st.write("CCT no encontrado. Por favor ingresa un CCT válido.")
+
+
