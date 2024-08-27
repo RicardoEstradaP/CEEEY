@@ -11,7 +11,7 @@ def image_to_base64(image_path):
         return base64.b64encode(img_file.read()).decode("utf-8")
 
 # Función para generar el PDF y guardarlo en un archivo temporal
-def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_path, logo_path):
+def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, file_path, logo_path):
     pdf = FPDF()
     pdf.add_page()
 
@@ -27,6 +27,7 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
     # Información de la escuela
     pdf.set_font("Arial", size=10)
     pdf.cell(200, 10, txt=f"Escuela: {escuela}", ln=True)
+    pdf.cell(200, 10, txt=f"Turno: {turno}", ln=True)  # Añadir el turno aquí
     pdf.cell(200, 10, txt=f"Modalidad: {modalidad}", ln=True)
     pdf.ln(10)
 
@@ -50,7 +51,7 @@ def generar_pdf(escuela, modalidad, tabla_gramatica, tabla_vocabulario, file_pat
     pdf.ln(5)
     pdf.cell(80, 10, txt="Nivel", border=1)
     pdf.cell(40, 10, txt="Estudiantes", border=1)
-    pdf.cell(40, 10, txt="Porcentaje", border=1)
+    pdf.cell(40, 10, txt=f"{tabla_vocabulario.iloc[i]['Porcentaje']:.2f}%", border=1)
     pdf.ln()
     for i in range(len(tabla_vocabulario)):
         pdf.cell(80, 10, txt=f"{tabla_vocabulario.iloc[i]['Nivel']}", border=1)
@@ -103,10 +104,11 @@ if not df_cct_filtered.empty:
     df_filtered = df_cct_filtered[df_cct_filtered['Turno'] == turno_selected]
 
     if not df_filtered.empty:
-        # Mostrar Escuela y Modalidad asociadas al CCT
+        # Mostrar Escuela, Turno y Modalidad asociadas al CCT
         escuela = df_filtered['Escuela'].iloc[0]
         modalidad = df_filtered['Modalidad'].iloc[0]
         st.write(f"**Escuela:** {escuela}")
+        st.write(f"**Turno:** {turno_selected}")  # Mostrar el turno seleccionado
         st.write(f"**Modalidad:** {modalidad}")
 
         # Filtrar valores no nulos para gráficos
@@ -179,49 +181,36 @@ if not df_cct_filtered.empty:
         # Tabla de frecuencias en dos columnas
         st.subheader("Tabla de Frecuencias")
         
-        # Crear DataFrames para las tablas con porcentaje (para el PDF)
-        tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
-        tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
-        tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / tabla_gramatica_pdf['Estudiantes'].sum()) * 100
-        
-        tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
-        tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
-        tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / tabla_vocabulario_pdf['Estudiantes'].sum()) * 100
-        
+        # Contar la frecuencia y calcular el porcentaje de cada nivel para Gramática y Vocabulario
+        tabla_gramatica = df_gramatica['Gramática'].value_counts().reindex(categorias_ordenadas, fill_value=0).reset_index()
+        tabla_gramatica.columns = ['Nivel', 'Estudiantes']
+        tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / tabla_gramatica['Estudiantes'].sum()) * 100
+
+        tabla_vocabulario = df_vocabulario['Vocabulario'].value_counts().reindex(categorias_ordenadas, fill_value=0).reset_index()
+        tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
+        tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / tabla_vocabulario['Estudiantes'].sum()) * 100
+
         col3, col4 = st.columns(2)
-        col3.table(tabla_gramatica_pdf)
-        col4.table(tabla_vocabulario_pdf)
+
+        with col3:
+            st.markdown("**Gramática**")
+            st.table(tabla_gramatica)
+
+        with col4:
+            st.markdown("**Vocabulario**")
+            st.table(tabla_vocabulario)
+
+        # Ruta para guardar el archivo PDF temporalmente
+        temp_file_path = os.path.join(os.getcwd(), "reporte.pdf")
         
-        # Botón para descargar el PDF
-        temp_file_path = "resultados_escuela.pdf"
-        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, temp_file_path, logo_path)
-
-        # Leer el archivo PDF generado para ofrecer la descarga
-        with open(temp_file_path, "rb") as file:
-            btn = st.download_button(
-                label="Descargar PDF",
-                data=file,
-                file_name=temp_file_path,
-                mime="application/pdf"
-            )
-
-        # Eliminar el archivo temporal después de la descarga
-        os.remove(temp_file_path)
-
-        # Estilos CSS para el botón de descarga PDF
-        st.markdown("""
-        <style>
-        .stDownloadButton button {
-            background-color: #ff4b4b;  /* Rojo */
-            color: white;  /* Texto en blanco */
-        }
-        .stDownloadButton button:hover {
-            background-color: #d43f3f;  /* Rojo más oscuro para hover */
-            color: white;  /* Texto en blanco */
-        }
-        </style>
-        """, unsafe_allow_html=True)
-    else:
-        st.write("No hay datos disponibles para el turno seleccionado.")
+        # Botón para generar el PDF
+        if st.button("Generar PDF"):
+            generar_pdf(escuela, turno_selected, modalidad, tabla_gramatica, tabla_vocabulario, temp_file_path, logo_path)
+            with open(temp_file_path, "rb") as pdf_file:
+                PDFbyte = pdf_file.read()
+            st.download_button(label="Descargar PDF",
+                               data=PDFbyte,
+                               file_name=f"Reporte_{escuela}_{turno_selected}.pdf",
+                               mime='application/pdf')
 else:
-    st.write("No se encontraron resultados para el CCT proporcionado.")
+    st.write("No se encontró el CCT proporcionado.")
