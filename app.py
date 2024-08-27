@@ -91,131 +91,136 @@ st.markdown(
 # Filtro por CCT
 cct_input = st.text_input("Escribe el CCT:")
 
-# Filtro por Turno
-turno_options = df['Turno'].unique()  # Obtener opciones únicas de turno
-turno_selected = st.selectbox("Selecciona el Turno:", turno_options)
+# Filtrar DataFrame según el valor de CCT ingresado
+df_cct_filtered = df[df['CCT'] == cct_input]
 
-# Filtrar DataFrame según el valor de CCT ingresado y Turno seleccionado
-df_filtered = df[(df['CCT'] == cct_input) & (df['Turno'] == turno_selected)]
+if not df_cct_filtered.empty:
+    # Filtro por Turno
+    turno_options = df_cct_filtered['Turno'].unique()  # Obtener opciones únicas de turno
+    turno_selected = st.selectbox("Selecciona el Turno:", turno_options)
 
-# Lista de categorías en orden deseado
-categorias_ordenadas = ['Pre A1', 'A1', 'A2', 'Superior a A2']
+    # Filtrar DataFrame según el valor de Turno seleccionado
+    df_filtered = df_cct_filtered[df_cct_filtered['Turno'] == turno_selected]
 
-# Definir colores gradientes para los gráficos de sectores
-colores_gramatica = {
-    'Pre A1': '#a2c9a0',  # Verde más claro
-    'A1': '#7aab7e',
-    'A2': '#4a8d54',
-    'Superior a A2': '#2d5b30'  # Verde más oscuro
-}
+    if not df_filtered.empty:
+        # Mostrar Escuela y Modalidad asociadas al CCT
+        escuela = df_filtered['Escuela'].iloc[0]
+        modalidad = df_filtered['Modalidad'].iloc[0]
+        st.write(f"**Escuela:** {escuela}")
+        st.write(f"**Modalidad:** {modalidad}")
 
-colores_vocabulario = {
-    'Pre A1': '#f9f3a6',  # Amarillo más claro
-    'A1': '#f3e46b',
-    'A2': '#f1d236',
-    'Superior a A2': '#f0b30f'  # Amarillo más oscuro
-}
+        # Filtrar valores no nulos para gráficos
+        df_gramatica = df_filtered[df_filtered['Gramática'].notna()]
+        df_vocabulario = df_filtered[df_filtered['Vocabulario'].notna()]
 
-if not df_filtered.empty:
-    # Mostrar Escuela y Modalidad asociadas al CCT
-    escuela = df_filtered['Escuela'].iloc[0]
-    modalidad = df_filtered['Modalidad'].iloc[0]
-    st.write(f"**Escuela:** {escuela}")
-    st.write(f"**Modalidad:** {modalidad}")
+        # Contar la frecuencia de estudiantes
+        freq_gramatica = df_gramatica['Gramática'].count()
+        freq_vocabulario = df_vocabulario['Vocabulario'].count()
 
-    # Filtrar valores no nulos para gráficos
-    df_gramatica = df_filtered[df_filtered['Gramática'].isin(categorias_ordenadas)]
-    df_vocabulario = df_filtered[df_filtered['Vocabulario'].isin(categorias_ordenadas)]
+        # Lista de categorías en orden deseado
+        categorias_ordenadas = ['Pre A1', 'A1', 'A2', 'Superior a A2']
 
-    # Contar la frecuencia de estudiantes
-    freq_gramatica = df_gramatica['Gramática'].count()
-    freq_vocabulario = df_vocabulario['Vocabulario'].count()
+        # Definir colores gradientes para los gráficos de sectores
+        colores_gramatica = {
+            'Pre A1': '#a2c9a0',  # Verde más claro
+            'A1': '#7aab7e',
+            'A2': '#4a8d54',
+            'Superior a A2': '#2d5b30'  # Verde más oscuro
+        }
 
-    # Gráfico de sectores para Gramática con gradiente verde militar
-    fig_gramatica = px.pie(df_gramatica, names='Gramática', 
-                           category_orders={'Gramática': categorias_ordenadas},
-                           color='Gramática',
-                           color_discrete_map=colores_gramatica)
-    fig_gramatica.update_layout(
-        title={
-            'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes",
-            'y':0.9,
-            'x':0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'
-        },
-        margin=dict(t=120)
-    )
+        colores_vocabulario = {
+            'Pre A1': '#f9f3a6',  # Amarillo más claro
+            'A1': '#f3e46b',
+            'A2': '#f1d236',
+            'Superior a A2': '#f0b30f'  # Amarillo más oscuro
+        }
 
-    # Gráfico de sectores para Vocabulario con gradiente amarillo mostaza
-    fig_vocabulario = px.pie(df_vocabulario, names='Vocabulario', 
-                             category_orders={'Vocabulario': categorias_ordenadas},
-                             color='Vocabulario',
-                             color_discrete_map=colores_vocabulario)
-    fig_vocabulario.update_layout(
-        title={
-            'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes",
-            'y':0.9,
-            'x':0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'
-        },
-        margin=dict(t=120)
-    )
+        # Gráfico de sectores para Gramática con gradiente verde militar
+        fig_gramatica = px.pie(df_gramatica, names='Gramática', 
+                               category_orders={'Gramática': categorias_ordenadas},
+                               color='Gramática',
+                               color_discrete_map=colores_gramatica)
+        fig_gramatica.update_layout(
+            title={
+                'text': f"Gramática<br><span style='font-size:12px'>Frecuencia: {freq_gramatica} estudiantes",
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            },
+            margin=dict(t=120)
+        )
 
-    # Crear dos columnas para los gráficos
-    col1, col2 = st.columns(2)
+        # Gráfico de sectores para Vocabulario con gradiente amarillo mostaza
+        fig_vocabulario = px.pie(df_vocabulario, names='Vocabulario', 
+                                 category_orders={'Vocabulario': categorias_ordenadas},
+                                 color='Vocabulario',
+                                 color_discrete_map=colores_vocabulario)
+        fig_vocabulario.update_layout(
+            title={
+                'text': f"Vocabulario<br><span style='font-size:12px'>Frecuencia: {freq_vocabulario} estudiantes",
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            },
+            margin=dict(t=120)
+        )
 
-    # Mostrar gráfico de Gramática en la primera columna
-    col1.plotly_chart(fig_gramatica, use_container_width=True)
+        # Crear dos columnas para los gráficos
+        col1, col2 = st.columns(2)
 
-    # Mostrar gráfico de Vocabulario en la segunda columna
-    col2.plotly_chart(fig_vocabulario, use_container_width=True)
+        # Mostrar gráfico de Gramática en la primera columna
+        col1.plotly_chart(fig_gramatica, use_container_width=True)
 
-    # Tabla de frecuencias en dos columnas
-    st.subheader("Tabla de Frecuencias")
-    
-    # Crear DataFrames para las tablas con porcentaje (para el PDF)
-    tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
-    tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
+        # Mostrar gráfico de Vocabulario en la segunda columna
+        col2.plotly_chart(fig_vocabulario, use_container_width=True)
 
-    tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
-    tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
-    tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
-    
-    col3, col4 = st.columns(2)
-
-    # Tabla de Frecuencias de Gramática
-    tabla_gramatica = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0)
-    tabla_gramatica = tabla_gramatica.reset_index()
-    tabla_gramatica.columns = ['Nivel', 'Estudiantes']
-    tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / freq_gramatica) * 100
-
-    col3.table(tabla_gramatica)
-
-    # Tabla de Frecuencias de Vocabulario
-    tabla_vocabulario = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0)
-    tabla_vocabulario = tabla_vocabulario.reset_index()
-    tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
-    tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / freq_vocabulario) * 100
-
-    col4.table(tabla_vocabulario)
-    
-    # Botón para generar PDF
-    if st.button("Generar PDF"):
-        pdf_file_path = "reporte.pdf"
-        generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, pdf_file_path, logo_path)
+        # Tabla de frecuencias en dos columnas
+        st.subheader("Tabla de Frecuencias")
         
-        # Descargar el archivo PDF
-        with open(pdf_file_path, "rb") as f:
-            pdf_data = f.read()
-        b64_pdf = base64.b64encode(pdf_data).decode()
-        href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="reporte.pdf">Descargar reporte PDF</a>'
-        st.markdown(href, unsafe_allow_html=True)
-        
-        # Eliminar el archivo PDF temporal después de la descarga
-        os.remove(pdf_file_path)
+        # Crear DataFrames para las tablas con porcentaje (para el PDF)
+        tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
+        tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
+        tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
 
+        tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
+        tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
+        tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
+        
+        col3, col4 = st.columns(2)
+
+        # Tabla de Frecuencias de Gramática
+        tabla_gramatica = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).fillna(0)
+        tabla_gramatica = tabla_gramatica.reset_index()
+        tabla_gramatica.columns = ['Nivel', 'Estudiantes']
+        tabla_gramatica['Porcentaje'] = (tabla_gramatica['Estudiantes'] / freq_gramatica) * 100
+
+        col3.table(tabla_gramatica)
+
+        # Tabla de Frecuencias de Vocabulario
+        tabla_vocabulario = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0)
+        tabla_vocabulario = tabla_vocabulario.reset_index()
+        tabla_vocabulario.columns = ['Nivel', 'Estudiantes']
+        tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / freq_vocabulario) * 100
+
+        col4.table(tabla_vocabulario)
+        
+        # Botón para generar PDF
+        if st.button("Generar PDF"):
+            pdf_file_path = "reporte.pdf"
+            generar_pdf(escuela, modalidad, tabla_gramatica_pdf, tabla_vocabulario_pdf, pdf_file_path, logo_path)
+            
+            # Descargar el archivo PDF
+            with open(pdf_file_path, "rb") as f:
+                pdf_data = f.read()
+            b64_pdf = base64.b64encode(pdf_data).decode()
+            href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="reporte.pdf">Descargar reporte PDF</a>'
+            st.markdown(href, unsafe_allow_html=True)
+            
+            # Eliminar el archivo PDF temporal después de la descarga
+            os.remove(pdf_file_path)
+    else:
+        st.write("No se encontraron datos para el CCT proporcionado y el turno seleccionado.")
 else:
-    st.write("No se encontraron datos para el CCT proporcionado y el turno seleccionado.")
+    st.write("No se encontraron datos para el CCT proporcionado.")
