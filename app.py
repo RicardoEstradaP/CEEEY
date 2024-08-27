@@ -5,9 +5,6 @@ from fpdf import FPDF
 import os
 import base64
 
-# Definir categorías ordenadas (ajusta esto según tus necesidades)
-categorias_ordenadas = ['Bajo', 'Medio', 'Alto']
-
 # Función para convertir imagen a base64
 def image_to_base64(image_path):
     with open(image_path, "rb") as img_file:
@@ -95,21 +92,29 @@ st.markdown(
 cct_input = st.text_input("Escribe el CCT:")
 
 # Filtro por Turno
-if cct_input:
-    turno_options = df[df['CCT'] == cct_input]['Turno'].unique()
-    if turno_options.size > 0:
-        turno_selected = st.selectbox("Selecciona el Turno:", turno_options)
-    else:
-        st.write("No hay turnos disponibles para el CCT ingresado.")
-        turno_selected = None
-else:
-    turno_selected = None
+turno_options = df['Turno'].unique()  # Obtener opciones únicas de turno
+turno_selected = st.selectbox("Selecciona el Turno:", turno_options)
 
 # Filtrar DataFrame según el valor de CCT ingresado y Turno seleccionado
-if turno_selected:
-    df_filtered = df[(df['CCT'] == cct_input) & (df['Turno'] == turno_selected)]
-else:
-    df_filtered = df[df['CCT'] == cct_input]
+df_filtered = df[(df['CCT'] == cct_input) & (df['Turno'] == turno_selected)]
+
+# Lista de categorías en orden deseado
+categorias_ordenadas = ['Pre A1', 'A1', 'A2', 'Superior a A2']
+
+# Definir colores gradientes para los gráficos de sectores
+colores_gramatica = {
+    'Pre A1': '#a2c9a0',  # Verde más claro
+    'A1': '#7aab7e',
+    'A2': '#4a8d54',
+    'Superior a A2': '#2d5b30'  # Verde más oscuro
+}
+
+colores_vocabulario = {
+    'Pre A1': '#f9f3a6',  # Amarillo más claro
+    'A1': '#f3e46b',
+    'A2': '#f1d236',
+    'Superior a A2': '#f0b30f'  # Amarillo más oscuro
+}
 
 if not df_filtered.empty:
     # Mostrar Escuela y Modalidad asociadas al CCT
@@ -119,8 +124,8 @@ if not df_filtered.empty:
     st.write(f"**Modalidad:** {modalidad}")
 
     # Filtrar valores no nulos para gráficos
-    df_gramatica = df_filtered[df_filtered['Gramática'].notnull()]
-    df_vocabulario = df_filtered[df_filtered['Vocabulario'].notnull()]
+    df_gramatica = df_filtered[df_filtered['Gramática'].isin(categorias_ordenadas)]
+    df_vocabulario = df_filtered[df_filtered['Vocabulario'].isin(categorias_ordenadas)]
 
     # Contar la frecuencia de estudiantes
     freq_gramatica = df_gramatica['Gramática'].count()
@@ -178,8 +183,7 @@ if not df_filtered.empty:
     tabla_vocabulario_pdf = df_filtered['Vocabulario'].value_counts().reindex(categorias_ordenadas).fillna(0).reset_index()
     tabla_vocabulario_pdf.columns = ['Nivel', 'Estudiantes']
     tabla_vocabulario_pdf['Porcentaje'] = (tabla_vocabulario_pdf['Estudiantes'] / freq_vocabulario) * 100
-
-    # Crear dos columnas para las tablas
+    
     col3, col4 = st.columns(2)
 
     # Tabla de Frecuencias de Gramática
@@ -197,7 +201,7 @@ if not df_filtered.empty:
     tabla_vocabulario['Porcentaje'] = (tabla_vocabulario['Estudiantes'] / freq_vocabulario) * 100
 
     col4.table(tabla_vocabulario)
-
+    
     # Botón para generar PDF
     if st.button("Generar PDF"):
         pdf_file_path = "reporte.pdf"
