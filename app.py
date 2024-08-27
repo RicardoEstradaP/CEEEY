@@ -171,7 +171,7 @@ if not df_filtered.empty:
     # Tabla de frecuencias en dos columnas
     st.subheader("Tabla de Frecuencias")
     
-    # Crear DataFrames para las tablas con porcentaje (para el PDF)
+# Crear DataFrames para las tablas con porcentaje (para el PDF)
 tabla_gramatica_pdf = df_filtered['Gramática'].value_counts().reindex(categorias_ordenadas).reset_index()
 tabla_gramatica_pdf.columns = ['Nivel', 'Estudiantes']
 tabla_gramatica_pdf['Porcentaje'] = (tabla_gramatica_pdf['Estudiantes'] / freq_gramatica) * 100
@@ -188,18 +188,18 @@ tabla_vocabulario_pdf = tabla_vocabulario_pdf.reset_index(drop=True)
 tabla_gramatica_visible = tabla_gramatica_pdf[['Nivel', 'Estudiantes']]
 tabla_vocabulario_visible = tabla_vocabulario_pdf[['Nivel', 'Estudiantes']]
 
-    # Crear columnas para las tablas
-    col1, col2 = st.columns(2)
+# Crear columnas para las tablas
+col1, col2 = st.columns(2)  # Asegúrate de que esta línea no tenga espacios adicionales al principio
 
-    # Mostrar tabla de Gramática en la primera columna
-    with col1:
-        st.write("**Gramática**")
-        st.table(tabla_gramatica_visible)
+# Mostrar tabla de Gramática en la primera columna
+with col1:
+    st.write("**Gramática**")
+    st.table(tabla_gramatica_visible)
 
-    # Mostrar tabla de Vocabulario en la segunda columna
-    with col2:
-        st.write("**Vocabulario**")
-        st.table(tabla_vocabulario_visible)
+# Mostrar tabla de Vocabulario en la segunda columna
+with col2:
+    st.write("**Vocabulario**")
+    st.table(tabla_vocabulario_visible)
 
     # Botón para generar el PDF
     if st.button("Generar reporte"):
