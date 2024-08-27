@@ -10,8 +10,8 @@ def image_to_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
-# Función para generar el PDF y devolverlo como bytes
-def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, logo_path):
+# Función para generar el PDF y guardarlo en un archivo temporal
+def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, file_path, logo_path):
     pdf = FPDF()
     pdf.add_page()
 
@@ -66,12 +66,8 @@ def generar_pdf(escuela, turno, modalidad, tabla_gramatica, tabla_vocabulario, l
     pdf.set_font("Arial", size=9)
     pdf.multi_cell(0, 10, txt="La información proporcionada en esta página es suministrada por el Centro de Evaluación Educativa del Estado de Yucatán con fines exclusivamente informativos", align='C')
 
-    # Guardar el PDF en memoria
-    from io import BytesIO
-    pdf_output = BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
-    return pdf_output
+    # Guardar el PDF en un archivo temporal
+    pdf.output(file_path)
 
 # Cargar datos desde la ruta especificada
 df = pd.read_csv('Resultados.csv')
@@ -204,11 +200,16 @@ if not df_cct_filtered.empty:
             st.markdown("**Vocabulario**")
             st.table(tabla_vocabulario)
 
+        # Ruta para guardar el archivo PDF temporalmente
+        temp_file_path = os.path.join(os.getcwd(), "reporte.pdf")
+        
         # Botón para generar y descargar el PDF
         if st.button("Generar y Descargar PDF"):
-            pdf_output = generar_pdf(escuela, turno_selected, modalidad, tabla_gramatica, tabla_vocabulario, logo_path)
+            generar_pdf(escuela, turno_selected, modalidad, tabla_gramatica, tabla_vocabulario, temp_file_path, logo_path)
+            with open(temp_file_path, "rb") as pdf_file:
+                PDFbyte = pdf_file.read()
             st.download_button(label="Descargar PDF",
-                               data=pdf_output,
+                               data=PDFbyte,
                                file_name=f"Reporte_{escuela}_{turno_selected}.pdf",
                                mime='application/pdf')
 else:
